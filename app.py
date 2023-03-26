@@ -6,7 +6,7 @@ isAdmin = False
 
 @app.route('/')
 def index():
-    return "Index Page"
+    return redirect(url_for("login"))
 
 
 @app.route('/login')
@@ -16,13 +16,15 @@ def login():
 
 @app.route('/param/<param>')
 def param(param):
-    return f"Your param is {param}"
+    return f"Param: {param}"
 
 
 @app.route("/admin")
 def admin():
     if not isAdmin:
         return redirect(url_for("login"))
+
+    return redirect(url_for("param", param="Hello Admin"))
 
 
 if __name__ == "__main__":
