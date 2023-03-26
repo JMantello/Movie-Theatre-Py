@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, request
 
 app = Flask(__name__)
 isAdmin = False
@@ -9,9 +9,15 @@ def index():
     return redirect(url_for("login"))
 
 
-@app.route('/login')
+@app.route('/login', methods=["POST", "GET"])
 def login():
-    return "Login Page"
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        return f"Username: {username}, Password: {password}"
+
+    else:
+        return "The Login Page"
 
 
 @app.route('/param/<param>')
