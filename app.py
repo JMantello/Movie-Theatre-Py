@@ -17,9 +17,13 @@ isAdmin = True
 class Content(db.Model):
     _id = db.Column("id", db.Integer, primary_key=True)
     title = db.Column(db.String(200))
+    description = db.Column(db.String(1000))
+    genre = db.Column(db.String(100))
 
-    def __init__(self, title):
+    def __init__(self, title, description, genre):
         self.title = title
+        self.description = description
+        self.genre = genre
 
 
 # Routes
