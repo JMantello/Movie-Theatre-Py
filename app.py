@@ -1,11 +1,25 @@
 from flask import Flask, redirect, url_for, request, abort, session
 from datetime import timedelta
-import sqlalchemy
+from enum import Enum
+from flask_sqlalchemy import SQLAlchemy
 
+# Configuration
 app = Flask(__name__)
 app.secret_key = "appsecretkey"
 app.permanent_session_lifetime = timedelta(days=30)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///shows.sqlite3"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
 isAdmin = True
+
+
+# Data Models
+class Content(db.Model):
+    _id = db.Column("id", db.Integer, primary_key=True)
+    title = db.Column(db.String(200))
+
+    def __init__(self, title):
+        self.title = title
 
 
 # Routes
@@ -26,8 +40,7 @@ def login():
     elif "username" in session:
         return redirect(url_for("browse"))
 
-    else:
-        return "The Login Page"
+    return "The Login Page"
 
 
 @app.route("/logout", methods=["GET", "POST"])
@@ -41,7 +54,8 @@ def browse():
     loginIfNoSession()
 
     sessionData = session["username"]
-    return f"The Browse Page for {sessionData}"
+    content = Content.query.all()
+    return f"The Browse Page for {sessionData} \n {content[0].title}"
 
 
 @app.route("/yourAccount", methods=["GET", "POST"])
@@ -65,8 +79,8 @@ def admin():
     return redirect(url_for("param", param="Hello Admin"))
 
 
-@app.route("/addShow", methods=["GET", "POST"])
-def addShow():
+@app.route("/addContent", methods=["GET", "POST"])
+def addContent():
     if not isAdmin:
         abort(404)
 
@@ -74,10 +88,17 @@ def addShow():
 
     if request.method == "POST":
         title = request.form["title"]
-        return f"Show added: {title}"
 
-    else:
-        return f"The Add Show Page"
+        foundContent = Content.query.filter_by(title=title).first()
+        if foundContent:
+            return f"Content with title {title} already exists"
+
+        content = Content(title)
+        db.session.add(content)
+        db.session.commit()
+        return f"Content added: {title}"
+
+    return f"The Add Content Page"
 
 
 # Helper Functions
@@ -88,4 +109,7 @@ def loginIfNoSession():
 
 # Run App
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+
     app.run(debug=True)
