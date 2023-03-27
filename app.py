@@ -5,9 +5,10 @@ import sqlalchemy
 app = Flask(__name__)
 app.secret_key = "appsecretkey"
 app.permanent_session_lifetime = timedelta(days=30)
-isAdmin = False
+isAdmin = True
 
 
+# Routes
 @app.route('/')
 def index():
     return redirect(url_for("login"))
@@ -37,22 +38,18 @@ def logout():
 
 @app.route("/browse")
 def browse():
-    if "username" in session:
-        sessionData = session["username"]
-        return f"The Browse Page for {sessionData}"
+    loginIfNoSession()
 
-    else:
-        return redirect(url_for("login"))
+    sessionData = session["username"]
+    return f"The Browse Page for {sessionData}"
 
 
-@app.route("/youraccount", methods=["GET", "POST"])
-def youraccount():
-    if "username" in session:
-        sessionData = session["username"]
-        return f"The Browse Page for {sessionData}"
+@app.route("/yourAccount", methods=["GET", "POST"])
+def yourAccount():
+    loginIfNoSession()
 
-    else:
-        return redirect(url_for("login"))
+    sessionData = session["username"]
+    return f"The Account Page for {sessionData}"
 
 
 @app.route('/viewData/<data>')
@@ -68,5 +65,27 @@ def admin():
     return redirect(url_for("param", param="Hello Admin"))
 
 
+@app.route("/addShow", methods=["GET", "POST"])
+def addShow():
+    if not isAdmin:
+        abort(404)
+
+    loginIfNoSession()
+
+    if request.method == "POST":
+        title = request.form["title"]
+        return f"Show added: {title}"
+
+    else:
+        return f"The Add Show Page"
+
+
+# Helper Functions
+def loginIfNoSession():
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+
+# Run App
 if __name__ == "__main__":
     app.run(debug=True)
