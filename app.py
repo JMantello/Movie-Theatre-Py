@@ -26,6 +26,18 @@ class Content(db.Model):
         self.genre = genre
 
 
+class User(db.Model):
+    _id = db.Column("id", db.Integer, primary_key=True)
+    username = db.Column(db.String(100))
+    email = db.Column(db.String(100))
+    watchHistory = db.Column(db.String(100))
+
+    def __init__(self, username, email, watchHistory):
+        self.username = username
+        self.email = email
+        self.watchHistory = watchHistory
+
+
 # Routes
 @app.route('/')
 def index():
