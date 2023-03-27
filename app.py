@@ -1,6 +1,7 @@
 from flask import Flask, redirect, url_for, request, abort, session, jsonify
 from datetime import timedelta, datetime
 from enum import Enum
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 
 # Configuration
@@ -14,12 +15,45 @@ isAdmin = True
 
 
 # Data Models
+watched = db.Table('watched',
+                   db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+                   db.Column('content_id', db.Integer, db.ForeignKey('content.id')))
+
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150))
+    email = db.Column(db.String(150), nullable=False, unique=True)
+    password_hash = db.Column(db.String(128), nullable=False)
+    watchHistory = db.relationship(
+        "Content", secondary=watched, backref=db.backref('watchers', lazy='dynamic'))
+
+    @property
+    def password(self):
+        raise AttributeError("Password is not-readable")
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def __init__(self, name, email,  password):
+        self.name = name
+        self.email = email
+        self.password = password
+
+
+def __getUser(user_id):
+    return User.query.filter_by(id=user_id).first()
+
+
 class Content(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
-    title = db.Column(db.String(200))
+    title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.String(1000))
     genre = db.Column(db.String(100))
-    date_added = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __init__(self, title, description, genre):
         self.title = title
@@ -27,17 +61,8 @@ class Content(db.Model):
         self.genre = genre
 
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), nullable=False)
-    email = db.Column(db.String(150), nullable=False, unique=True)
-    watchHistory = db.Column(db.String(100))
-    date_added = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __init__(self, username, email, watchHistory):
-        self.username = username
-        self.email = email
-        self.watchHistory = watchHistory
+def __getContent(content_id):
+    return Content.query.filter_by(id=content_id).first()
 
 
 # Routes
@@ -46,16 +71,40 @@ def index():
     return redirect(url_for("login"))
 
 
+@app.route("/createUser", methods=["POST"])
+def createUser():
+    email = request.form["email"]
+    foundUser = User.query.filter_by(email=email).first()
+    if foundUser:
+        return f"User already registered with that email"
+
+    name = request.form["name"]
+    password = request.form["password"]
+
+    user = User(name, email, password)
+    db.session.add(user)
+    db.session.commit()
+
+    session["user_id"] = user.id
+
+    return redirect(url_for("browse"))
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        session.permanent = True
-        username = request.form["username"]
+        email = request.form["email"]
         password = request.form["password"]
-        session["username"] = f"{username}'s session"
+        foundUser = User.query.filter_by(email=email).first()
+
+        if not foundUser.verify_password(password):
+            return f"Invalid email or password"
+
+        session.permanent = True
+        session["user_id"] = foundUser.id
         return redirect(url_for("browse"))
 
-    elif "username" in session:
+    elif "user_id" in session:
         return redirect(url_for("browse"))
 
     return "The Login Page"
@@ -63,7 +112,7 @@ def login():
 
 @app.route("/logout", methods=["GET", "POST"])
 def logout():
-    session.pop("username", None)
+    session.pop("user_id", None)
     return redirect(url_for("login"))
 
 
@@ -71,10 +120,10 @@ def logout():
 def browse():
     loginIfNoSession()
 
-    sessionData = session["username"]
+    user = __getUser(session["user_id"])
     contentData = Content.query.all()
 
-    content = []
+    feed = []
     for c in contentData:
         content_data = {
             "id": c.id,
@@ -82,19 +131,35 @@ def browse():
             "description": c.description,
             "genre": c.genre,
         }
-        content.append(content_data)
+        feed.append(content_data)
 
-    return f"The Browse Page for {sessionData} \n{content}"
+    return f"The Browse Page for {user.name} \n{feed}"
+
+
+@app.route("/watchContent/", methods=["POST"])
+def watch():
+    loginIfNoSession()
+    user = __getUser(session["user_id"])
+    content_id = request.form["content_id"]
+    content = __getContent(content_id)
+
+    if content not in user.watch_history:
+        user.watch_history.append(content)
+        db.session.commit()
+        return f"Added {content.title} to your watch history"
 
 
 @app.route("/yourAccount", methods=["GET", "POST"])
 def yourAccount():
     loginIfNoSession()
 
-    sessionData = session["username"]
-    return f"The Account Page for {sessionData}"
+    user = __getUser(session["user_id"])
+    details = [user.name, user.email]
+
+    return f"The Account Page for {user.name}\n{details}"
 
 
+# Reminder for using params
 @app.route('/viewData/<data>')
 def viewData(data):
     return f"Your Data: {data}"
@@ -120,10 +185,6 @@ def addContent():
         description = request.form["description"]
         genre = request.form["genre"]
 
-        foundContent = Content.query.filter_by(title=title).first()
-        if foundContent:
-            return f"Content with title {title} already exists"
-
         content = Content(title, description, genre)
         db.session.add(content)
         db.session.commit()
@@ -138,10 +199,10 @@ def updateContent():
         abort(404)
 
     if request.method == "POST":
-        id = request.form["id"]
-        foundContent = Content.query.filter_by(id=id).first()
+        content_id = request.form["content_id"]
+        foundContent = __getContent(content_id)
         if not foundContent:
-            return f"Content with id {id} not found"
+            return f"Content with id {content_id} not found"
 
         foundContent.title = request.form["title"]
         foundContent.description = request.form["description"]
@@ -155,7 +216,7 @@ def updateContent():
 
 # Helper Functions
 def loginIfNoSession():
-    if "username" not in session:
+    if "user_id" not in session:
         return redirect(url_for("login"))
 
 
