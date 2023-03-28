@@ -167,7 +167,7 @@ def watch():
     return f"{content.title} in {user.name}'s watch history", 200
 
 
-@app.route("/yourAccount", methods=["GET", "POST"])
+@app.route("/yourAccount", methods=["GET"])
 def yourAccount():
     loginIfNoSession()
 
@@ -211,12 +211,12 @@ def addContent():
     return f"The Add Content Page"
 
 
-@app.route("/updateContent", methods=["GET", "POST"])
+@app.route("/updateContent", methods=["PUT"])
 def updateContent():
     if not isAdmin:
         abort(404)
 
-    if request.method == "POST":
+    if request.method == "PUT":
         content_id = request.form["content_id"]
         foundContent = __getContent(content_id)
         if not foundContent:
@@ -230,6 +230,23 @@ def updateContent():
         return f"Content updated: {foundContent}"
 
     return f"The Add Content Page"
+
+
+@app.route("/viewUsers")
+def viewUsers():
+    usersData = User.query.all()
+
+    result = []
+    for u in usersData:
+        user = {
+            "id": u.id,
+            "name": u.name,
+            "email": u.email,
+            "watchHistory": u.watchHistory,
+        }
+        result.append(user)
+
+    return f"Users:\n{result}"
 
 
 # Helper Functions
