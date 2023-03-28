@@ -229,7 +229,7 @@ def updateContent():
         db.session.commit()
         return f"Content updated: {foundContent}"
 
-    return f"The Add Content Page"
+    return f"The Update Content Page"
 
 
 @app.route("/deleteContent", methods=["GET", "DELETE"])
@@ -247,7 +247,7 @@ def deleteContent():
         db.session.commit()
         return f"Content deleted: {foundContent}"
 
-    return f"The Add Content Page"
+    return f"The Delete Content Page"
 
 
 @app.route("/viewUsers")
@@ -265,6 +265,26 @@ def viewUsers():
         result.append(user)
 
     return f"Users:\n{result}"
+
+
+@app.route("/updateUser", methods=["PUT"])
+def updateUser():
+    if request.method == "PUT":
+        user_id = request.form["user_id"]
+        if not session["user_id"] == user_id and not isAdmin:
+            abort(404)
+
+        foundUser = __getUser(user_id)
+        if not foundUser:
+            return f"user with id {user_id} not found"
+
+        foundUser.name = request.form["name"]
+        foundUser.email = request.form["email"]
+
+        db.session.commit()
+        return f"User updated: {foundUser}"
+
+    return f"The Update User Page"
 
 
 # Helper Functions
