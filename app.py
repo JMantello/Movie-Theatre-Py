@@ -136,17 +136,35 @@ def browse():
     return f"The Browse Page for {user.name} \n{feed}"
 
 
-@app.route("/watchContent/", methods=["POST"])
+@app.route("/contentDetails")
+def contentDetails():
+    loginIfNoSession()
+
+    content_id = request.args.get("content_id")
+    content = __getContent(content_id)
+
+    contentDetails = {
+        "title": content.title,
+        "description": content.description,
+        "genre": content.genre,
+    }
+
+    return f"Detail Page for {contentDetails}"
+
+
+@app.route("/watch")
 def watch():
     loginIfNoSession()
     user = __getUser(session["user_id"])
-    content_id = request.form["content_id"]
+    content_id = request.args.get("content_id")
     content = __getContent(content_id)
 
-    if content not in user.watch_history:
-        user.watch_history.append(content)
+    if content not in user.watchHistory:
+        user.watchHistory.append(content)
         db.session.commit()
         return f"Added {content.title} to your watch history"
+
+    return f"{content.title} in {user.name}'s watch history", 200
 
 
 @app.route("/yourAccount", methods=["GET", "POST"])
