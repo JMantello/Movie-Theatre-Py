@@ -211,7 +211,7 @@ def addContent():
     return f"The Add Content Page"
 
 
-@app.route("/updateContent", methods=["PUT"])
+@app.route("/updateContent", methods=["GET", "PUT"])
 def updateContent():
     if not isAdmin:
         abort(404)
@@ -228,6 +228,24 @@ def updateContent():
 
         db.session.commit()
         return f"Content updated: {foundContent}"
+
+    return f"The Add Content Page"
+
+
+@app.route("/deleteContent", methods=["GET", "DELETE"])
+def deleteContent():
+    if not isAdmin:
+        abort(404)
+
+    if request.method == "DELETE":
+        content_id = request.form["content_id"]
+        foundContent = __getContent(content_id)
+        if not foundContent:
+            return f"Content with id {content_id} not found"
+
+        db.session.delete(foundContent)
+        db.session.commit()
+        return f"Content deleted: {foundContent}"
 
     return f"The Add Content Page"
 
