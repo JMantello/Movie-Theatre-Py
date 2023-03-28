@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, request, abort, session, jsonify
+from flask import Flask, redirect, url_for, request, abort, session, jsonify, make_response
 from datetime import timedelta, datetime
 from enum import Enum
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -68,6 +68,7 @@ def __getContent(content_id):
 # Routes
 @app.route('/')
 def index():
+    # session.pop("user_id", None)
     return redirect(url_for("login"))
 
 
@@ -94,9 +95,11 @@ def createUser():
 def login():
     if request.method == "POST":
         email = request.form["email"]
-        password = request.form["password"]
         foundUser = User.query.filter_by(email=email).first()
+        if not foundUser:
+            return f"No user found with that email"
 
+        password = request.form["password"]
         if not foundUser.verify_password(password):
             return f"Invalid email or password"
 
@@ -113,12 +116,14 @@ def login():
 @app.route("/logout", methods=["GET", "POST"])
 def logout():
     session.pop("user_id", None)
+    session.clear()
     return redirect(url_for("login"))
 
 
 @app.route("/browse")
 def browse():
-    loginIfNoSession()
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     user = __getUser(session["user_id"])
     contentData = Content.query.all()
@@ -138,10 +143,14 @@ def browse():
 
 @app.route("/contentDetails")
 def contentDetails():
-    loginIfNoSession()
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     content_id = request.args.get("content_id")
     content = __getContent(content_id)
+
+    if not content:
+        return f"Content with content_id: {content_id} was not found"
 
     contentDetails = {
         "title": content.title,
@@ -154,10 +163,15 @@ def contentDetails():
 
 @app.route("/watch")
 def watch():
-    loginIfNoSession()
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
     user = __getUser(session["user_id"])
     content_id = request.args.get("content_id")
     content = __getContent(content_id)
+
+    if not content:
+        return f"Content with content_id: {content_id} was not found"
 
     if content not in user.watchHistory:
         user.watchHistory.append(content)
@@ -169,7 +183,8 @@ def watch():
 
 @app.route("/yourAccount", methods=["GET"])
 def yourAccount():
-    loginIfNoSession()
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     user = __getUser(session["user_id"])
     details = [user.name, user.email]
@@ -271,7 +286,7 @@ def viewUsers():
 def updateUser():
     if request.method == "PUT":
         user_id = request.form["user_id"]
-        if not session["user_id"] == user_id and not isAdmin:
+        if not user_id == session["user_id"] and not isAdmin:
             abort(404)
 
         foundUser = __getUser(user_id)
@@ -287,10 +302,27 @@ def updateUser():
     return f"The Update User Page"
 
 
-# Helper Functions
-def loginIfNoSession():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
+@app.route("/deleteUser", methods=["GET", "DELETE"])
+def deleteUser():
+    if request.method == "DELETE":
+        user_id = request.form["user_id"]
+        if not user_id == session["user_id"] and not isAdmin:
+            abort(404)
+
+        foundUser = __getUser(user_id)
+        if not foundUser:
+            return f"User with id {user_id} not found"
+
+        db.session.delete(foundUser)
+        db.session.commit()
+
+        if int(user_id) == session["user_id"]:
+            session.pop("user_id", None)
+            return redirect(url_for("login"))
+
+        return f"User deleted: {foundUser}"
+
+    return f"The Delete user Page"
 
 
 # Run App
