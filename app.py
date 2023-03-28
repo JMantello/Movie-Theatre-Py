@@ -25,6 +25,7 @@ class User(db.Model):
     name = db.Column(db.String(150))
     email = db.Column(db.String(150), nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=False)
+    isAdmin = db.Column(db.Boolean, default=False, nullable=False)
     watchHistory = db.relationship(
         "Content", secondary=watched, backref=db.backref('watchers', lazy='dynamic'))
 
@@ -39,7 +40,7 @@ class User(db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def __init__(self, name, email,  password):
+    def __init__(self, name, email, password):
         self.name = name
         self.email = email
         self.password = password
