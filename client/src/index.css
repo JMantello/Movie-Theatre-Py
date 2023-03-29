@@ -15,11 +15,3 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
-
-a {
-  color: var(--link-color);
-}
-
-a:visited {
-  color: var(--link-color);
-}
