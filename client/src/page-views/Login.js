@@ -4,7 +4,7 @@ function Login() {
     return (
         <div className="login">
             <header className="login-header">
-                <Link to="/">Login Logo</Link>
+                <Link to="/" className="logo">Login Logo</Link>
             </header>
 
         </div>
