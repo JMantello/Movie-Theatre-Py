@@ -5,9 +5,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow_sqlalchemy import SQLAlchemySchema, auto_field
 from faker import Faker
+from flask_cors import CORS
 
 # Configuration
 app = Flask(__name__)
+CORS(app, origins=["http://localhost:3000"])
 app.secret_key = "appsecretkey"
 app.permanent_session_lifetime = timedelta(days=30)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app-db.sqlite3"
