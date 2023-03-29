@@ -4,6 +4,7 @@ from enum import Enum
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow_sqlalchemy import SQLAlchemySchema, auto_field
+from faker import Faker
 
 # Configuration
 app = Flask(__name__)
@@ -26,11 +27,13 @@ class Content(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.String(1000))
     genre = db.Column(db.String(100))
+    image_url = db.Column(db.String(400))
 
-    def __init__(self, title, description, genre):
+    def __init__(self, title, description, genre, image_url):
         self.title = title
         self.description = description
         self.genre = genre
+        self.image_url = image_url
 
 
 def __getContent(content_id):
@@ -46,6 +49,7 @@ class ContentSchema(SQLAlchemySchema):
     title = auto_field()
     description = auto_field()
     genre = auto_field()
+    image_url = auto_field()
 
 
 class User(db.Model):
@@ -91,6 +95,37 @@ def __getUser(user_id):
 
 
 # Routes
+@app.route('/dataSeed')
+def dataSeed():
+    genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi']
+    fake = Faker()
+
+    for i in range(50):
+        content = Content(fake.sentence(), fake.text(),
+                          fake.random_element(genres), fake.image_url(width=1920, height=1080))
+
+        db.session.add(content)
+        db.session.commit()
+
+    for i in range(50):
+        user = User(fake.name(), fake.email(), fake.password())
+
+        # Create 3 initial admins
+        if i < 3:
+            user.isAdmin = True
+
+        # Add 3 random Content to Users 3 - 40(ish) watch history
+        contentData = Content.query.all()
+        if i > 3 and i < 40:
+            for j in range(3):
+                user.watchHistory.append(fake.random_element(contentData))
+
+        db.session.add(user)
+
+    db.session.commit()
+    return f"Database seeded"
+
+
 @app.route('/')
 def index():
     # session.pop("user_id", None)
@@ -173,11 +208,8 @@ def contentDetails():
     if not content:
         return f"Content with content_id: {content_id} was not found"
 
-    contentDetails = {
-        "title": content.title,
-        "description": content.description,
-        "genre": content.genre,
-    }
+    cs = ContentSchema()
+    contentDetails = cs.dump(content)
 
     return f"Detail Page for {contentDetails}"
 
@@ -238,8 +270,9 @@ def addContent():
         title = request.form["title"]
         description = request.form["description"]
         genre = request.form["genre"]
+        image_url = request.form["image_url"]
 
-        content = Content(title, description, genre)
+        content = Content(title, description, genre, image_url)
         db.session.add(content)
         db.session.commit()
         return f"Content added: {content}"
@@ -299,17 +332,12 @@ def viewUsers():
     if not isAdmin:
         abort(404)
 
+    us = UserSchema()
     usersData = User.query.all()
 
     result = []
     for u in usersData:
-        user = {
-            "id": u.id,
-            "name": u.name,
-            "email": u.email,
-            "watchHistory": u.watchHistory,
-        }
-        result.append(user)
+        result.append(us.dump(u))
 
     return f"Users:\n{result}"
 
