@@ -1,8 +1,10 @@
+import { Link } from "react-router-dom"
+
 function Login() {
     return (
         <div className="login">
             <header className="login-header">
-                <a>Login Logo</a>
+                <Link to="/">Login Logo</Link>
             </header>
 
         </div>

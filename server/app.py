@@ -3,6 +3,7 @@ from datetime import timedelta, datetime
 from enum import Enum
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
+from marshmallow_sqlalchemy import SQLAlchemySchema, auto_field
 
 # Configuration
 app = Flask(__name__)
@@ -18,6 +19,33 @@ isAdmin = True
 watched = db.Table('watched',
                    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
                    db.Column('content_id', db.Integer, db.ForeignKey('content.id')))
+
+
+class Content(db.Model):
+    id = db.Column("id", db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.String(1000))
+    genre = db.Column(db.String(100))
+
+    def __init__(self, title, description, genre):
+        self.title = title
+        self.description = description
+        self.genre = genre
+
+
+def __getContent(content_id):
+    return Content.query.filter_by(id=content_id).first()
+
+
+class ContentSchema(SQLAlchemySchema):
+    class Meta:
+        model = Content
+        load_instance = True
+
+    id = auto_field()
+    title = auto_field()
+    description = auto_field()
+    genre = auto_field()
 
 
 class User(db.Model):
@@ -46,24 +74,20 @@ class User(db.Model):
         self.password = password
 
 
+class UserSchema(SQLAlchemySchema):
+    class Meta:
+        model = User
+        load_instance = True
+
+    id = auto_field()
+    name = auto_field()
+    email = auto_field()
+    isAdmin = auto_field()
+    watchHistory = auto_field()
+
+
 def __getUser(user_id):
     return User.query.filter_by(id=user_id).first()
-
-
-class Content(db.Model):
-    id = db.Column("id", db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.String(1000))
-    genre = db.Column(db.String(100))
-
-    def __init__(self, title, description, genre):
-        self.title = title
-        self.description = description
-        self.genre = genre
-
-
-def __getContent(content_id):
-    return Content.query.filter_by(id=content_id).first()
 
 
 # Routes
@@ -129,15 +153,11 @@ def browse():
     user = __getUser(session["user_id"])
     contentData = Content.query.all()
 
+    cs = ContentSchema()
+
     feed = []
     for c in contentData:
-        content_data = {
-            "id": c.id,
-            "title": c.title,
-            "description": c.description,
-            "genre": c.genre,
-        }
-        feed.append(content_data)
+        feed.append(cs.dump(c))
 
     return f"The Browse Page for {user.name} \n{feed}"
 
@@ -266,8 +286,19 @@ def deleteContent():
     return f"The Delete Content Page"
 
 
+@app.route("/viewUser")
+def viewUser():
+    user_id = request.args.get("user_id")
+    user = __getUser(user_id)
+
+    return f"User:\n{UserSchema().dump(user)}"
+
+
 @app.route("/viewUsers")
 def viewUsers():
+    if not isAdmin:
+        abort(404)
+
     usersData = User.query.all()
 
     result = []
