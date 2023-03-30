@@ -268,28 +268,31 @@ def user():
         res = jsonify(SessionSchema().dump(session))
         return res
 
-    # If not POST, need to verify user logged in (and hide behind admin)
-    token = request.args["token"]
-    user_id = request.args["user_id"]
-    foundUser = __getUser(user_id)
-
-    if not foundUser:
-        return jsonify(f"No user found with id: {user_id}", 404)
-
-    if not foundUser.isAdmin:
-        abort(404)
-
     if request.method == "GET":
+        token = request.args["token"]
+        user_id = request.args["user_id"]
+        foundUser = __getUser(user_id)
+
+        if not foundUser:
+            return jsonify(f"No user found with id: {user_id}", 404)
+
+        if not foundUser.isAdmin:
+            abort(404)
+
         us = UserSchema()
         return jsonify(us.dump(foundUser))
 
-    req = request.get_json()
-    foundUser = __getUserBySessionToken(req["token"])
-
     if request.method == "PUT":  # Updates
+        req = request.get_json()
+        token = req["token"]
         name = req["name"]
         email = req["email"]
         password = req["password"]
+        isAdmin = req["isAdmin"]
+
+        foundUser = __getUserBySessionToken(token)
+        if not foundUser:
+            return jsonify(f"No user found session: {token}", 404)
 
         if name:
             foundUser.name = req["name"]
@@ -297,13 +300,17 @@ def user():
             foundUser.email = req["email"]
         if password:
             foundUser.password = password
+        if isAdmin:
+            foundUser.isAdmin = isAdmin
 
         db.session.commit()
+        session = __getSessionByToken(token)
         res = jsonify(SessionSchema().dump(session))
         return res
 
     if request.method == "DELETE":
         # Delete Dession as well
+        req = request.get_json()
         session = __getSessionByToken(req["token"])
         db.session.delete(session)
         db.session.delete(foundUser)
