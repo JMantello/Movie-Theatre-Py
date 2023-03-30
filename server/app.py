@@ -145,8 +145,9 @@ def __getUserBySessionToken(token):
 # Routes
 @app.route('/dataSeed')
 def dataSeed():
-    genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi']
     fake = Faker()
+
+    genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi']
 
     for i in range(50):
         content = Content(fake.sentence(), fake.text(),
@@ -171,15 +172,15 @@ def dataSeed():
         db.session.add(user)
 
     db.session.commit()
-    return f"Database seeded"
+    return f"Database seeded", 200
 
 
 @app.route("/login", methods=["POST"])
 def login():
     req = request.get_json()
-    email = req["email"]
 
-    foundUser = User.query.filter_by(email=email).first()
+    email = req["email"]
+    foundUser = __getUserByEmail(email)
     if not foundUser:
         return f"Invalid email or password", 400
 
@@ -187,6 +188,7 @@ def login():
     if not foundUser.verify_password(password):
         return f"Invalid email or password", 400
 
+    # Return token if existing session
     foundSession = Session.query.filter_by(user_id=foundUser.id).first()
     if foundSession:
         return foundSession.token, 200
@@ -201,11 +203,13 @@ def login():
 @app.route("/logout", methods=["POST"])
 def logout():
     req = request.get_json()
+
     foundSession = __getSessionByToken(req["token"])
     if (foundSession):
         db.session.delete(foundSession)
         db.session.commit()
-    return 200
+
+    return f"Logged out", 200
 
 
 @app.route("/feed", methods=["POST"])
@@ -330,61 +334,93 @@ def user():
 
 @app.route("/content", methods=["GET", "POST", "PUT", "DELETE"])
 def content():
-    req = request.get_json()
-    user = __getUserBySessionToken(req["token"])
-    if not user:
-        return jsonify(f"No user found in Session table", 404)
-
     if request.method == "GET":
-        content = __getContent(req["content_id"])
+        token = request.args["token"]
 
+        foundUser = __getUserBySessionToken(token)
+        if not foundUser:
+            return jsonify(f"No user found session: {token}", 404)
+
+        content = __getContent(request.args["content_id"])
         if not content:
-            return 404
+            return f"Content not found", 404
 
         cs = ContentSchema()
-        contentDetails = jsonify(cs.dump(content))
 
-        return contentDetails
-
-    # require isAdmin to continue
-    if not user.isAdmin:
-        return 404
+        return jsonify(cs.dump(content))
 
     if request.method == "POST":
+        req = request.get_json()
+
+        user = __getUserBySessionToken(req["token"])
+        if not user:
+            return jsonify(f"No user found in Session table", 404)
+
+        if not user.isAdmin:
+            return 404
+
+        # require isAdmin to continue
         title = req["title"]
         description = req["description"]
         genre = req["genre"]
         image_url = req["image_url"]
+
         content = Content(title, description, genre, image_url)
         db.session.add(content)
         db.session.commit()
-        return 200
 
-    # require foundContent to continue
-    foundContent = __getContent(req["content_id"])
-    if not foundContent:
-        return 404
+        return f"Content added", 200
 
     if request.method == "PUT":
+        req = request.get_json()
+
+        user = __getUserBySessionToken(req["token"])
+        if not user:
+            return jsonify(f"No user found in Session table", 404)
+
+        foundContent = __getContent(req["content_id"])
+        if not foundContent:
+            return f"Content not found", 404
+
         title = req["title"]
         description = req["description"]
         genre = req["genre"]
         image_url = req["image_url"]
+
+        # Update only fields included in request body
         if title:
-            foundContent.title = req["title"]
+            foundContent.title = title
+
         if description:
-            foundContent.description = req["description"]
+            foundContent.description = description
+
         if genre:
             foundContent.genre = genre
+
         if image_url:
             foundContent.image_url = image_url
+
         db.session.commit()
-        return 200
+
+        return f"Content updated", 200
 
     if request.method == "DELETE":
+        token = request.args["token"]
+
+        foundUser = __getUserBySessionToken(token)
+        if not foundUser:
+            return abort(404)  # Hide functionality
+
+        if not foundUser.isAdmin:
+            abort(404)
+
+        foundContent = __getContent(request.args["content_id"])
+        if not foundContent:
+            return f"Content not found", 404
+
         db.session.delete(foundContent)
         db.session.commit()
-        return 200
+        return f"Content deleted", 200
 
 
 # Run App
