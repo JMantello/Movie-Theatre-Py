@@ -151,10 +151,10 @@ def dataSeed():
 
     for i in range(50):
         content = Content(fake.sentence(), fake.text(),
-                          fake.random_element(genres), fake.image_url(width=1920, height=1080))
+                          fake.random_element(genres), fake.image_url())  # width=1920, height=1080
 
         db.session.add(content)
-        db.session.commit()
+    db.session.commit()
 
     for i in range(50):
         user = User(fake.name(), fake.email(), fake.password())
@@ -170,8 +170,8 @@ def dataSeed():
                 user.watchHistory.append(fake.random_element(contentData))
 
         db.session.add(user)
-
     db.session.commit()
+
     return f"Database seeded", 200
 
 
@@ -220,8 +220,8 @@ def feed():
         return jsonify(f"No user found in Session table", 404)
 
     contentData = Content.query.all()
-    cs = ContentSchema()
 
+    cs = ContentSchema()
     feed = []
     for c in contentData:
         feed.append(cs.dump(c))
