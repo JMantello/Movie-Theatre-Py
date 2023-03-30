@@ -1,10 +1,11 @@
 import { useState } from "react"
-import { Link, redirect } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
 import apiURL from "../api";
 
-function Login() {
+function Login(props) {
+    const { setSession } = props
     const [inputs, setInputs] = useState({})
 
     const changeInput = (e) => {
@@ -33,7 +34,10 @@ function Login() {
 
             // Get a session token from response
             const session = await response.json()
-            // redirect("/feed",)
+            setSession(session)
+
+            // const navigate = useNavigate()
+            // navigate("/feed", { session: session, replace: true })
 
         } catch (err) {
             console.log("Error with posting login request", err)
