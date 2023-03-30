@@ -1,28 +1,42 @@
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
 import apiURL from "../api";
 
 function Login() {
-    async function postLogin(e) {
-        e.preventDefault();
-        const formData = new FormData(e.target)
+    const [inputs, setInputs] = useState({})
+
+    const changeInput = (e) => {
+        const name = e.target.name;
+        const value = e.target.value;
+        setInputs(values => ({ ...values, [name]: value }))
+    }
+
+    const postLogin = async (event) => {
+        event.preventDefault();
+
         const loginData = {
-            email: formData.get("email"),
-            password: formData.get("password")
+            email: inputs.email,
+            password: inputs.password
         };
+
         try {
+            // POST Login reqeust
             const response = await fetch(`${apiURL}/login`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "applications/json"
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify(loginData)
             });
             const responseData = await response.json();
             console.log(responseData)
+
+            // Get a session token from response
+
         } catch (err) {
-            console.log("Error with posting login request")
+            console.log("Error with posting login request", err)
         }
     }
 
@@ -38,12 +52,24 @@ function Login() {
                     <Form className="rounded p-4 p-sm-3" onSubmit={postLogin}>
                         <Form.Group className="mb-3" controlId="login-form-email">
                             <Form.Label>Email Address</Form.Label>
-                            <Form.Control type="email" placeholder="Enter Email" />
+                            <Form.Control
+                                type="email"
+                                name="email"
+                                placeholder="Enter Email"
+                                onChange={changeInput}
+                                value={inputs.email || ""}
+                            />
                             <Form.Text className="text-muted">We'll never share your email with anyone else.</Form.Text>
                         </Form.Group>
                         <Form.Group className="mb-3" controlId="login-form-password">
                             <Form.Label>Password</Form.Label>
-                            <Form.Control type="password" placeholder="Enter Password" />
+                            <Form.Control
+                                type="password"
+                                name="password"
+                                placeholder="Enter Password"
+                                onChange={changeInput}
+                                value={inputs.password || ""}
+                            />
                         </Form.Group>
                         <Form.Group className="mb-3" controlId="login-form-remember-me-checkbox">
                             <Form.Check type="checkbox" label="Remember Me" />

@@ -1,6 +1,7 @@
 from flask import Flask, redirect, url_for, request, abort, session, jsonify, make_response
 from datetime import timedelta, datetime
 from enum import Enum
+import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow_sqlalchemy import SQLAlchemySchema, auto_field
@@ -19,6 +20,8 @@ isAdmin = True
 
 
 # Data Models
+genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi']
+
 watched = db.Table('watched',
                    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
                    db.Column('content_id', db.Integer, db.ForeignKey('content.id')))
@@ -96,6 +99,47 @@ def __getUser(user_id):
     return User.query.filter_by(id=user_id).first()
 
 
+def __getUserByEmail(user_email):
+    return User.query.filter_by(email=user_email).first()
+
+
+class Session(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+    token = db.Column(db.String(64), unique=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __init__(self, user_id, token):
+        self.user_id = user_id
+        self.token = token
+        self.created_at = datetime.utcnow()
+        self.updated_at = datetime.utcnow()
+
+
+class SessionSchema(SQLAlchemySchema):
+    class Meta:
+        model = Session
+        load_instance = True
+
+    id = auto_field()
+    user_id = auto_field()
+    token = auto_field()
+    created_at = auto_field()
+    updated_at = auto_field()
+
+
+def __getUserBySessionToken(token):
+    session = Session.query.filter_by(token=token).first()
+    user = __getUser(session.user_id)
+    return user
+
+
+def __getSessionByToken(token):
+    return Session.query.filter_by(token=token).first()
+
+
 # Routes
 @app.route('/dataSeed')
 def dataSeed():
@@ -128,268 +172,196 @@ def dataSeed():
     return f"Database seeded"
 
 
-@app.route('/')
-def index():
-    # session.pop("user_id", None)
-    return redirect(url_for("login"))
+@app.route("/login", methods=["POST"])
+def login():
+    req = request.get_json()
+    email = req["email"]
 
-
-@app.route("/createUser", methods=["POST"])
-def createUser():
-    email = request.form["email"]
     foundUser = User.query.filter_by(email=email).first()
-    if foundUser:
-        return f"User already registered with that email"
+    if not foundUser:
+        return f"Invalid email or password", 400
 
-    name = request.form["name"]
-    password = request.form["password"]
+    password = req["password"]
+    if not foundUser.verify_password(password):
+        return f"Invalid email or password", 400
 
-    user = User(name, email, password)
-    db.session.add(user)
+    foundSession = Session.query.filter_by(user_id=foundUser.id).first()
+    if foundSession:
+        return foundSession.token, 200
+
+    token = str(uuid.uuid4())
+    session = Session(user_id=foundUser.id, token=token)
+    db.session.add(session)
     db.session.commit()
 
-    session["user_id"] = user.id
-
-    return redirect(url_for("browse"))
+    return token
 
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        email = request.form["email"]
-        foundUser = User.query.filter_by(email=email).first()
-        if not foundUser:
-            return f"No user found with that email"
-
-        password = request.form["password"]
-        if not foundUser.verify_password(password):
-            return f"Invalid email or password"
-
-        session.permanent = True
-        session["user_id"] = foundUser.id
-        return redirect(url_for("browse"))
-
-    elif "user_id" in session:
-        return redirect(url_for("browse"))
-
-    return "The Login Page"
-
-
-@app.route("/logout", methods=["GET", "POST"])
+@app.route("/logout", methods=["POST"])
 def logout():
-    session.pop("user_id", None)
-    session.clear()
-    return redirect(url_for("login"))
+    req = request.get_json()
+    foundSession = __getSessionByToken(req["token"])
+    if (foundSession):
+        db.session.delete(foundSession)
+        db.session.commit()
+    return 200
 
 
-@app.route("/browse")
-def browse():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
+@app.route("/feed", methods=["POST"])
+def feed():
+    req = request.get_json()
+    user = __getUserBySessionToken(req["token"])
+    if not user:
+        return jsonify(f"No user found in Session table", 404)
 
-    user = __getUser(session["user_id"])
     contentData = Content.query.all()
-
     cs = ContentSchema()
 
     feed = []
     for c in contentData:
         feed.append(cs.dump(c))
 
-    return f"The Browse Page for {user.name} \n{feed}"
+    return jsonify(feed)
 
 
-@app.route("/contentDetails")
-def contentDetails():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-
-    content_id = request.args.get("content_id")
-    content = __getContent(content_id)
-
-    if not content:
-        return f"Content with content_id: {content_id} was not found"
-
-    cs = ContentSchema()
-    contentDetails = cs.dump(content)
-
-    return f"Detail Page for {contentDetails}"
-
-
-@app.route("/watch")
+@app.route("/watch", methods=["GET"])
 def watch():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
+    req = request.get_json()
+    user = __getUserBySessionToken(req["token"])
+    if not user:
+        return jsonify(f"No user found in Session table", 404)
 
-    user = __getUser(session["user_id"])
-    content_id = request.args.get("content_id")
-    content = __getContent(content_id)
-
+    content = __getContent(req["content_id"])
     if not content:
-        return f"Content with content_id: {content_id} was not found"
+        return 404
 
     if content not in user.watchHistory:
         user.watchHistory.append(content)
         db.session.commit()
-        return f"Added {content.title} to your watch history"
-
-    return f"{content.title} in {user.name}'s watch history", 200
+        return 200
 
 
-@app.route("/yourAccount", methods=["GET"])
-def yourAccount():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
+@app.route("/user", methods=["GET", "POST", "PUT", "DELETE"])
+def user():
+    if request.method == "POST":
+        req = request.get_json()
+        email = req["email"]
+        foundUser = __getUserByEmail(email)
+        if foundUser:
+            return f"User already registered with that email", 400
 
-    user = __getUser(session["user_id"])
-    details = [user.name, user.email]
+        name = req["name"]
+        password = req["password"]
 
-    return f"The Account Page for {user.name}\n{details}"
+        user = User(name, email, password)
+        db.session.add(user)
+        db.session.commit()
+
+        token = str(uuid.uuid4())
+        session = Session(user_id=user.id, token=token)
+
+        res = jsonify(SessionSchema().dump(session))
+        return res
+
+    # If not POST, need to verify user logged in (and hide behind admin)
+    # Pul out req and user variables here, as all methods below need them
+    req = request.get_json()
+    foundUser = __getUserBySessionToken(req["token"])
+    if not user:
+        return jsonify(f"No user found in Session table", 404)
+    if not user.isAdmin:
+        return 404
+
+    if request.method == "GET":
+        us = UserSchema()
+        return jsonify(us.dump(foundUser))
+
+    if request.method == "PUT":  # Updates
+        name = req["name"]
+        email = req["email"]
+        password = req["password"]
+
+        if name:
+            foundUser.name = req["name"]
+        if email:
+            foundUser.email = req["email"]
+        if password:
+            foundUser.password = password
+
+        db.session.commit()
+        res = jsonify(SessionSchema().dump(session))
+        return res
+
+    if request.method == "DELETE":
+        # Delete Dession as well
+        session = __getSessionByToken(req["token"])
+        db.session.delete(session)
+        db.session.delete(foundUser)
+        db.session.commit()
+        return 200
 
 
-# Reminder for using params
-@app.route('/viewData/<data>')
-def viewData(data):
-    return f"Your Data: {data}"
-    # redirect(url_for("param", param="Hello Admin"))
+@app.route("/content", methods=["GET", "POST", "PUT", "DELETE"])
+def content():
+    req = request.get_json()
+    user = __getUserBySessionToken(req["token"])
+    if not user:
+        return jsonify(f"No user found in Session table", 404)
 
+    if request.method == "GET":
+        content = __getContent(req["content_id"])
 
-# Admin Protected Endpoints
-@app.route("/admin")
-def admin():
-    if not isAdmin:
-        abort(404)
+        if not content:
+            return 404
 
-    return f"Hello Admin"
+        cs = ContentSchema()
+        contentDetails = jsonify(cs.dump(content))
 
+        return contentDetails
 
-@app.route("/addContent", methods=["GET", "POST"])
-def addContent():
-    if not isAdmin:
-        abort(404)
+    # require isAdmin to continue
+    if not user.isAdmin:
+        return 404
 
     if request.method == "POST":
-        title = request.form["title"]
-        description = request.form["description"]
-        genre = request.form["genre"]
-        image_url = request.form["image_url"]
-
+        title = req["title"]
+        description = req["description"]
+        genre = req["genre"]
+        image_url = req["image_url"]
         content = Content(title, description, genre, image_url)
         db.session.add(content)
         db.session.commit()
-        return f"Content added: {content}"
+        return 200
 
-    return f"The Add Content Page"
-
-
-@app.route("/updateContent", methods=["GET", "PUT"])
-def updateContent():
-    if not isAdmin:
-        abort(404)
+    # require foundContent to continue
+    foundContent = __getContent(req["content_id"])
+    if not foundContent:
+        return 404
 
     if request.method == "PUT":
-        content_id = request.form["content_id"]
-        foundContent = __getContent(content_id)
-        if not foundContent:
-            return f"Content with id {content_id} not found"
-
-        foundContent.title = request.form["title"]
-        foundContent.description = request.form["description"]
-        foundContent.genre = request.form["genre"]
-
+        title = req["title"]
+        description = req["description"]
+        genre = req["genre"]
+        image_url = req["image_url"]
+        if title:
+            foundContent.title = req["title"]
+        if description:
+            foundContent.description = req["description"]
+        if genre:
+            foundContent.genre = genre
+        if image_url:
+            foundContent.image_url = image_url
         db.session.commit()
-        return f"Content updated: {foundContent}"
-
-    return f"The Update Content Page"
-
-
-@app.route("/deleteContent", methods=["GET", "DELETE"])
-def deleteContent():
-    if not isAdmin:
-        abort(404)
+        return 200
 
     if request.method == "DELETE":
-        content_id = request.form["content_id"]
-        foundContent = __getContent(content_id)
-        if not foundContent:
-            return f"Content with id {content_id} not found"
-
         db.session.delete(foundContent)
         db.session.commit()
-        return f"Content deleted: {foundContent}"
-
-    return f"The Delete Content Page"
-
-
-@app.route("/viewUser")
-def viewUser():
-    user_id = request.args.get("user_id")
-    user = __getUser(user_id)
-
-    return f"User:\n{UserSchema().dump(user)}"
-
-
-@app.route("/viewUsers")
-def viewUsers():
-    if not isAdmin:
-        abort(404)
-
-    us = UserSchema()
-    usersData = User.query.all()
-
-    result = []
-    for u in usersData:
-        result.append(us.dump(u))
-
-    return f"Users:\n{result}"
-
-
-@app.route("/updateUser", methods=["PUT"])
-def updateUser():
-    if request.method == "PUT":
-        user_id = request.form["user_id"]
-        if not user_id == session["user_id"] and not isAdmin:
-            abort(404)
-
-        foundUser = __getUser(user_id)
-        if not foundUser:
-            return f"user with id {user_id} not found"
-
-        foundUser.name = request.form["name"]
-        foundUser.email = request.form["email"]
-
-        db.session.commit()
-        return f"User updated: {foundUser}"
-
-    return f"The Update User Page"
-
-
-@app.route("/deleteUser", methods=["GET", "DELETE"])
-def deleteUser():
-    if request.method == "DELETE":
-        user_id = request.form["user_id"]
-        if not user_id == session["user_id"] and not isAdmin:
-            abort(404)
-
-        foundUser = __getUser(user_id)
-        if not foundUser:
-            return f"User with id {user_id} not found"
-
-        db.session.delete(foundUser)
-        db.session.commit()
-
-        if int(user_id) == session["user_id"]:
-            session.pop("user_id", None)
-            return redirect(url_for("login"))
-
-        return f"User deleted: {foundUser}"
-
-    return f"The Delete user Page"
+        return 200
 
 
 # Run App
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-
     app.run(debug=True)
