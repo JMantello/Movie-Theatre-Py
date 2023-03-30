@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, redirect } from "react-router-dom"
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
 import apiURL from "../api";
@@ -31,9 +31,9 @@ function Login() {
                 body: JSON.stringify(loginData)
             });
 
-            console.log(await response.json())
-
             // Get a session token from response
+            const session = await response.json()
+            // redirect("/feed",)
 
         } catch (err) {
             console.log("Error with posting login request", err)

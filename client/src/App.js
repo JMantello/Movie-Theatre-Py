@@ -1,6 +1,7 @@
 import './App.css';
 import { Route, Routes } from "react-router-dom"
 import Login from './page-views/Login'
+import Feed from './page-views/Feed'
 
 function App() {
   return (
@@ -8,6 +9,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/feed" element={<Feed />} />
       </Routes>
     </div>
   );
