@@ -111,9 +111,9 @@ class Session(db.Model):
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    def __init__(self, user_id, token):
+    def __init__(self, user_id):
         self.user_id = user_id
-        self.token = token
+        self.token = str(uuid.uuid4())
         self.created_at = datetime.utcnow()
         self.updated_at = datetime.utcnow()
 
@@ -130,14 +130,16 @@ class SessionSchema(SQLAlchemySchema):
     updated_at = auto_field()
 
 
-def __getUserBySessionToken(token):
-    session = Session.query.filter_by(token=token).first()
-    user = __getUser(session.user_id)
-    return user
-
-
 def __getSessionByToken(token):
     return Session.query.filter_by(token=token).first()
+
+
+def __getUserBySessionToken(token):
+    session = __getSessionByToken(token)
+    if not session:
+        return None
+    user = __getUser(session.user_id)
+    return user
 
 
 # Routes
@@ -189,12 +191,11 @@ def login():
     if foundSession:
         return foundSession.token, 200
 
-    token = str(uuid.uuid4())
-    session = Session(user_id=foundUser.id, token=token)
+    session = Session(foundUser.id)
     db.session.add(session)
     db.session.commit()
 
-    return token
+    return foundSession.token
 
 
 @app.route("/logout", methods=["POST"])
@@ -252,29 +253,38 @@ def user():
 
         name = req["name"]
         password = req["password"]
+        isAdmin = req["isAdmin"]
 
         user = User(name, email, password)
+        if isAdmin:
+            user.isAdmin = True
         db.session.add(user)
-        db.session.commit()
 
-        token = str(uuid.uuid4())
-        session = Session(user_id=user.id, token=token)
+        user = __getUserByEmail(email)
+        session = Session(user.id)
+        db.session.add(session)
+        db.session.commit()
 
         res = jsonify(SessionSchema().dump(session))
         return res
 
     # If not POST, need to verify user logged in (and hide behind admin)
-    # Pul out req and user variables here, as all methods below need them
-    req = request.get_json()
-    foundUser = __getUserBySessionToken(req["token"])
-    if not user:
-        return jsonify(f"No user found in Session table", 404)
-    if not user.isAdmin:
-        return 404
+    token = request.args["token"]
+    user_id = request.args["user_id"]
+    foundUser = __getUser(user_id)
+
+    if not foundUser:
+        return jsonify(f"No user found with id: {user_id}", 404)
+
+    if not foundUser.isAdmin:
+        abort(404)
 
     if request.method == "GET":
         us = UserSchema()
         return jsonify(us.dump(foundUser))
+
+    req = request.get_json()
+    foundUser = __getUserBySessionToken(req["token"])
 
     if request.method == "PUT":  # Updates
         name = req["name"]
