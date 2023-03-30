@@ -309,13 +309,23 @@ def user():
         return res
 
     if request.method == "DELETE":
-        # Delete Dession as well
-        req = request.get_json()
-        session = __getSessionByToken(req["token"])
+        token = request.args["token"]
+        foundUser = __getUserBySessionToken(token)
+        if not foundUser:
+            return jsonify(f"No user found session: {token}", 404)
+        if not foundUser.isAdmin:
+            abort(404)
+
+        # Delete user
+        userToDelete = __getUser(request.args["user_id"])
+        db.session.delete(userToDelete)
+
+        # Delete Session as well
+        session = __getSessionByToken(token)
         db.session.delete(session)
-        db.session.delete(foundUser)
+
         db.session.commit()
-        return 200
+        return f"User deleted", 200
 
 
 @app.route("/content", methods=["GET", "POST", "PUT", "DELETE"])
