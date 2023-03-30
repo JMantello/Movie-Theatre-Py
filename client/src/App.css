@@ -19,14 +19,15 @@ body,
   filter: brightness(30%);
 }
 
-.login-header {
+.login-header,
+.feed-header {
   background: linear-gradient(180deg, rgba(0, 0, 0, .5) 0, transparent);
   border-bottom: transparent;
   display: flex;
   text-align: left;
 }
 
-.login .logo {
+.logo {
   margin-left: 3%;
   padding: 10px;
   font-size: xxx-large;
@@ -55,4 +56,9 @@ body,
 /* Feed Page */
 .feed {
   background-color: rgb(18, 18, 18);
+}
+
+.feed-body {
+  height: 100%;
+  padding: 2%;
 }
