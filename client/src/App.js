@@ -10,6 +10,8 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/feed" element={<Feed />} />
+        <Route path="/*" element={<h1>Not Found</h1>} />
+
       </Routes>
     </div>
   );
