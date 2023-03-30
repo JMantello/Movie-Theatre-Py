@@ -14,6 +14,7 @@ function Login(props) {
         setInputs(values => ({ ...values, [name]: value }))
     }
 
+    const navigate = useNavigate()
     const postLogin = async (event) => {
         event.preventDefault();
 
@@ -35,9 +36,7 @@ function Login(props) {
             // Get a session token from response
             const session = await response.json()
             setSession(session)
-
-            // const navigate = useNavigate()
-            // navigate("/feed", { session: session, replace: true })
+            navigate("/feed", { session: session, replace: true })
 
         } catch (err) {
             console.log("Error with posting login request", err)

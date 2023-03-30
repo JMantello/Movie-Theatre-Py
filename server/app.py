@@ -215,6 +215,7 @@ def logout():
 @app.route("/feed", methods=["POST"])
 def feed():
     req = request.get_json()
+    print(req)
     user = __getUserBySessionToken(req["token"])
     if not user:
         return jsonify(f"No user found in Session table", 404)
