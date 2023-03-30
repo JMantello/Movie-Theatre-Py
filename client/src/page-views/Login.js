@@ -30,8 +30,8 @@ function Login() {
                 },
                 body: JSON.stringify(loginData)
             });
-            const responseData = await response.json();
-            console.log(responseData)
+
+            console.log(await response.json())
 
             // Get a session token from response
 

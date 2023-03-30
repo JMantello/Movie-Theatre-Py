@@ -191,13 +191,13 @@ def login():
     # Return token if existing session
     foundSession = Session.query.filter_by(user_id=foundUser.id).first()
     if foundSession:
-        return foundSession.token, 200
+        return jsonify(SessionSchema().dump(foundSession)), 200
 
     session = Session(foundUser.id)
     db.session.add(session)
     db.session.commit()
 
-    return foundSession.token
+    return jsonify(SessionSchema().dump(session)), 200
 
 
 @app.route("/logout", methods=["POST"])
@@ -329,7 +329,8 @@ def user():
         db.session.delete(session)
 
         db.session.commit()
-        return f"User deleted", 200
+        res = jsonify(UserSchema().dump(userToDelete))
+        return res, 200
 
 
 @app.route("/content", methods=["GET", "POST", "PUT", "DELETE"])
@@ -357,7 +358,7 @@ def content():
             return jsonify(f"No user found in Session table", 404)
 
         if not user.isAdmin:
-            return 404
+            return abort(404)
 
         # require isAdmin to continue
         title = req["title"]
@@ -369,6 +370,7 @@ def content():
         db.session.add(content)
         db.session.commit()
 
+        # Need Fix: Return the newly added content
         return f"Content added", 200
 
     if request.method == "PUT":
@@ -402,6 +404,7 @@ def content():
 
         db.session.commit()
 
+        # Need Fix: Return the newly updated content
         return f"Content updated", 200
 
     if request.method == "DELETE":
@@ -409,7 +412,7 @@ def content():
 
         foundUser = __getUserBySessionToken(token)
         if not foundUser:
-            return abort(404)  # Hide functionality
+            return abort(404)  # Hides functionality
 
         if not foundUser.isAdmin:
             abort(404)
@@ -420,6 +423,8 @@ def content():
 
         db.session.delete(foundContent)
         db.session.commit()
+
+        # Need Fix: Return the deleted content
         return f"Content deleted", 200
 
 
