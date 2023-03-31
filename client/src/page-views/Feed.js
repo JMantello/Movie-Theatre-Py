@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
+import { Spinner } from "react-bootstrap"
 import apiURL from "../api";
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 
 function Feed(props) {
     const { session } = props
-    const [feed, setFeed] = useState({})
-    const [genres, setGenres] = useState()
+    const [feed, setFeed] = useState([])
+    const [genres, setGenres] = useState([])
 
     async function fetchFeed() {
         try {
@@ -83,9 +84,24 @@ function Feed(props) {
             </section>);
     }
 
+    if (feed.length === 0 || genres.length === 0) {
+        return (
+            <div className="feed">
+                <header className="feed-header">
+                    <Link to="/" className="logo">Movies</Link>
+                </header>
+                <div className="loading-spinner">
+                    <Spinner animation="border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </Spinner>
+                </div>
+            </div>
+        )
+    }
+
     return (<div className="feed">
         <header className="feed-header">
-            <Link to="/" className="logo">Movies</Link>
+            <Link to="/feed" className="logo">Movies</Link>
         </header>
         <div className="feed-body">
             {genres.map(g => (genreCarousel(g)))}

@@ -58,6 +58,13 @@ body,
   background-color: rgb(18, 18, 18);
 }
 
+.loading-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .feed-body {
   height: 100%;
   padding: 2% 5%;
