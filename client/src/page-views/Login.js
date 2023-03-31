@@ -84,7 +84,7 @@ function Login(props) {
                 </div>
             </main>
             <footer>
-                <div>Your footer here</div>
+                <p className="text-muted">Questions? Call 1-855-555-2991</p>
             </footer>
         </div>
     </>

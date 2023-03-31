@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import { Link } from "react-router-dom"
-import { Spinner } from "react-bootstrap"
+import { Button, Spinner } from "react-bootstrap"
 import apiURL from "../api";
 
 
@@ -28,34 +28,28 @@ function ContentDetails() {
         fetchContent();
     }, []);
 
-    if (!content) {
-        return (
-            <div className="content-details">
-                <header className="content-header">
-                    <Link to="/" className="logo">Movies</Link>
-                </header>
-                <div className="loading-spinner">
-                    <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                    </Spinner>
-                </div>
-            </div>
-        )
-    }
-
     return (<div className="content-details">
         <div className="content-details-header">
             <Link to="/feed" className="logo">Movies</Link>
         </div>
-        <div className="content-details-body">
-            <div className="content-details-body-left">
-                <img src={content.image_url} alt={content.title} />
+        {!content ? (
+            <div className="loading-spinner">
+                <Spinner animation="border" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </Spinner>
             </div>
-            <div className="content-details-body-right">
-                <h1>{content.title}</h1>
-                <p>{content.description}</p>
+        ) : (
+            <div className="content-details-body">
+                <div className="content-details-body-left">
+                    <img src={content.image_url} alt={content.title} />
+                </div>
+                <div className="content-details-body-right">
+                    <h1>{content.title}</h1>
+                    <p>{content.description}</p>
+                    <Button variant="primary">Watch Now</Button>
+                </div>
             </div>
-        </div>
+        )}
     </div>);
 }
 

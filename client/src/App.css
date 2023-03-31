@@ -5,6 +5,7 @@ body,
 .login,
 .feed {
   min-height: 100vh;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Login Page */
@@ -62,13 +63,14 @@ body {
   border-radius: 5%;
   background-color: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(40px);
-  color: rgba(255, 255, 255, 0.9);
 }
 
 .login footer {
   min-height: 80px;
-  display: flex;
   background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  padding: 15px;
 }
 
 /* Feed Page */
@@ -116,7 +118,7 @@ body {
 /* Content Details */
 .content-details {
   height: 100%;
-  /* background-color: rgb(18, 18, 18); */
+  background-color: rgb(18, 18, 18);
 }
 
 .content-details-body {

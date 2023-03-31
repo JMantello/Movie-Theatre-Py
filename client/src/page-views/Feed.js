@@ -114,9 +114,17 @@ function Feed() {
         <header className="feed-header">
             <Link to="/feed" className="logo">Movies</Link>
         </header>
-        <div className="feed-body">
-            {genres.map(g => (genreCarousel(g)))}
-        </div>
+        {feed.length === 0 || genres.length === 0 ? (
+            <div className="loading-spinner">
+                <Spinner animation="border" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </Spinner>
+            </div>
+        ) : (
+            <div className="feed-body">
+                {genres.map(g => (genreCarousel(g)))}
+            </div>
+        )}
     </div>
     )
 }
