@@ -24,6 +24,16 @@ function ContentDetails() {
         }
     }
 
+    async function watch() {
+        try {
+            const response = await fetch(`${apiURL}/watch?token=${session.token}&content_id=${session.content_id}`);
+            const responseData = await response.json();
+            alert(`You are watching ${content.title}`)
+        } catch (err) {
+            console.log("Error with fetching content", err);
+        }
+    }
+
     useEffect(() => {
         fetchContent();
     }, []);
@@ -46,7 +56,7 @@ function ContentDetails() {
                 <div className="content-details-body-right">
                     <h1>{content.title}</h1>
                     <p>{content.description}</p>
-                    <Button variant="primary">Watch Now</Button>
+                    <Button variant="primary" onClick={watch}>Watch Now</Button>
                 </div>
             </div>
         )}

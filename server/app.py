@@ -234,19 +234,20 @@ def genre():
 
 @app.route("/watch", methods=["GET"])
 def watch():
-    req = request.get_json()
+    req = request.args
     user = __getUserBySessionToken(req["token"])
     if not user:
         return jsonify(f"No user found in Session table", 404)
 
     content = __getContent(req["content_id"])
     if not content:
-        return 404
+        return f"Content not found", 404
 
     if content not in user.watchHistory:
         user.watchHistory.append(content)
         db.session.commit()
-        return 200
+
+    return jsonify(UserSchema().dump(user)), 200
 
 
 @app.route("/user", methods=["GET", "POST", "PUT", "DELETE"])
