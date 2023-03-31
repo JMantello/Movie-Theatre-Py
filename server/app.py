@@ -147,11 +147,9 @@ def __getUserBySessionToken(token):
 def dataSeed():
     fake = Faker()
 
-    genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi']
-
     for i in range(50):
         content = Content(fake.sentence(), fake.text(),
-                          fake.random_element(genres), fake.image_url())  # width=1920, height=1080
+                          fake.random_element(genres), fake.image_url(width=1920, height=1080))
 
         db.session.add(content)
     db.session.commit()
@@ -227,6 +225,11 @@ def feed():
         feed.append(cs.dump(c))
 
     return jsonify(feed)
+
+
+@app.route("/genre")
+def genre():
+    return jsonify(genres)
 
 
 @app.route("/watch", methods=["GET"])

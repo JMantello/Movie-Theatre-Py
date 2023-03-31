@@ -60,5 +60,22 @@ body,
 
 .feed-body {
   height: 100%;
-  padding: 2%;
+  padding: 2% 5%;
+}
+
+.content-thumbnail {
+  aspect-ratio: 16/9;
+  padding: 3%;
+  transition: 200ms ease-in-out;
+}
+
+.content-thumbnail:hover {
+  cursor: pointer;
+  transform: scale(1.05);
+}
+
+.content-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

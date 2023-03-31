@@ -14,7 +14,6 @@ function App() {
         <Route path="/login" element={<Login setSession={setSession} />} />
         <Route path="/feed" element={<Feed session={session} />} />
         <Route path="/*" element={<h1>Not Found</h1>} />
-
       </Routes>
     </div>
   );

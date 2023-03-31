@@ -6,7 +6,9 @@ import apiURL from "../api";
 
 function Login(props) {
     const { setSession } = props
-    const [inputs, setInputs] = useState({})
+    const [inputs, setInputs] = useState({
+        email: "jman@email.com", password: "letmein"
+    })
 
     const changeInput = (e) => {
         const name = e.target.name;

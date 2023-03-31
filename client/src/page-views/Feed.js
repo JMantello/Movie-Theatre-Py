@@ -7,6 +7,7 @@ import 'react-multi-carousel/lib/styles.css';
 function Feed(props) {
     const { session } = props
     const [feed, setFeed] = useState({})
+    const [genres, setGenres] = useState()
 
     async function fetchFeed() {
         try {
@@ -16,19 +17,33 @@ function Feed(props) {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ "token": session.token })
+                body: JSON.stringify({ "token": "bc5e7618-c791-4552-8d07-79f100dda864" })
             });
 
-            setFeed(await response.json())
+            const responseData = await response.json()
+            setFeed(responseData)
 
         } catch (err) {
             console.log("Error with posting request to feed", err)
         }
     }
 
+    async function fetchGenres() {
+        try {
+            const response = await fetch(`${apiURL}/genre`)
+            const responseData = await response.json()
+            setGenres(responseData)
+
+        } catch (err) {
+            console.log("Error with fetching genres", err)
+        }
+    }
+
     useEffect(() => {
         fetchFeed();
+        fetchGenres();
     }, [])
+
 
     const responsive = {
         superLargeDesktop: {
@@ -50,13 +65,22 @@ function Feed(props) {
         }
     };
 
-    function sections(name) {
-        <Carousel responsive={responsive}>
-            <div>Item 1</div>
-            <div>Item 2</div>
-            <div>Item 3</div>
-            <div>Item 4</div>
-        </Carousel>;
+    function thumbnail(content) {
+        return <div className="content-thumbnail">
+            <img src={content.image_url} alt={content.title} />
+        </div>
+    }
+
+    function genreCarousel(genre) {
+        const content = feed.filter(c => c.genre === genre);
+
+        return (
+            <section className="genre-section mb-3">
+                <h2 className="mb-3">{genre}</h2>
+                <Carousel responsive={responsive}>
+                    {content.map(c => (thumbnail(c)))}
+                </Carousel>
+            </section>);
     }
 
     return (<div className="feed">
@@ -64,7 +88,7 @@ function Feed(props) {
             <Link to="/" className="logo">Movies</Link>
         </header>
         <div className="feed-body">
-
+            {genres.map(g => (genreCarousel(g)))}
         </div>
     </div>
     )
