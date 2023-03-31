@@ -83,6 +83,9 @@ function Login(props) {
                     </Form>
                 </div>
             </main>
+            <footer>
+                <div>Your footer here</div>
+            </footer>
         </div>
     </>
     );
