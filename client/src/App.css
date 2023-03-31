@@ -73,17 +73,37 @@ body {
   padding: 15px;
 }
 
-/* Feed Page */
-.feed {
-  background-color: rgb(18, 18, 18);
-}
-
-.feed-header {
+/* Header after logged in */
+.header {
   background: linear-gradient(180deg, rgba(0, 0, 0, .5) 0, transparent);
   border-bottom: transparent;
   display: flex;
   text-align: left;
 }
+
+.header .nav-links {
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  align-items: end;
+  width: 100%;
+  padding: 20px;
+  margin-right: 2%;
+}
+
+.nav-link {
+  margin-left: 20px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: large;
+  font-weight: 600;
+}
+
+/* Feed Page */
+.feed {
+  background-color: rgb(18, 18, 18);
+}
+
 
 .loading-spinner {
   position: absolute;

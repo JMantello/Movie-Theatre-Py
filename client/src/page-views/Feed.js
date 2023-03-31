@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import Header from "../components/Header"
 import { Link } from "react-router-dom"
 import { Spinner } from "react-bootstrap"
 import apiURL from "../api";
@@ -89,31 +90,18 @@ function Feed() {
         return (
             <section className="genre-section mb-3">
                 <h2 className="mb-3">{genre}</h2>
-                <Carousel responsive={responsive}>
+                <Carousel
+                    responsive={responsive}
+                    swipeable={true}
+                    keyBoardControl={true}
+                >
                     {content.map(c => (thumbnail(c)))}
                 </Carousel>
             </section>);
     }
 
-    if (feed.length === 0 || genres.length === 0) {
-        return (
-            <div className="feed">
-                <header className="feed-header">
-                    <Link to="/" className="logo">Movies</Link>
-                </header>
-                <div className="loading-spinner">
-                    <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                    </Spinner>
-                </div>
-            </div>
-        )
-    }
-
     return (<div className="feed">
-        <header className="feed-header">
-            <Link to="/feed" className="logo">Movies</Link>
-        </header>
+        <Header />
         {feed.length === 0 || genres.length === 0 ? (
             <div className="loading-spinner">
                 <Spinner animation="border" role="status">
