@@ -112,3 +112,21 @@ body {
   height: 100%;
   object-fit: cover;
 }
+
+/* Content Details */
+.content-details {
+  height: 100%;
+  /* background-color: rgb(18, 18, 18); */
+}
+
+.content-details-body {
+  flex: 1;
+  height: 100%;
+  display: flex;
+}
+
+.content-details-body-left img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

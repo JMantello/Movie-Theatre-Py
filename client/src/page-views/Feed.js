@@ -5,8 +5,11 @@ import apiURL from "../api";
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 
-function Feed(props) {
-    const { session } = props
+function Feed() {
+    const [session, setSession] = useState({
+        user_id: 1,
+        token: "bc5e7618-c791-4552-8d07-79f100dda864"
+    })
     const [feed, setFeed] = useState([])
     const [genres, setGenres] = useState([])
 
@@ -18,7 +21,7 @@ function Feed(props) {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ "token": "bc5e7618-c791-4552-8d07-79f100dda864" })
+                body: JSON.stringify(session)
             });
 
             const responseData = await response.json()
@@ -68,7 +71,15 @@ function Feed(props) {
 
     function thumbnail(content) {
         return <div className="content-thumbnail">
-            <img src={content.image_url} alt={content.title} />
+            <Link to={{
+                pathname: "/content",
+                state: {
+                    session: session,
+                    contentId: content.id
+                }
+            }}>
+                <img src={content.image_url} alt={content.title} />
+            </Link>
         </div>
     }
 
