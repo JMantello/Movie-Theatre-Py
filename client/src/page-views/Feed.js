@@ -110,11 +110,11 @@ function Feed() {
             </div>
         ) : (
             <div className="feed-body">
-                <div className="content-details-body">
-                    <div className="content-details-body-left">
+                <div className="featured-content-body">
+                    <div className="featured-content-body-left">
                         <img src={feed[0].image_url} alt={feed[0].title} />
                     </div>
-                    <div className="content-details-body-right">
+                    <div className="featured-content-body-right">
                         <h1>{feed[0].title}</h1>
                         <p>{feed[0].description}</p>
                         <Button variant="primary">Watch Now</Button>
