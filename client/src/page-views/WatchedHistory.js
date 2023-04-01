@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react"
-import { useLocation } from "react-router-dom"
 import Header from "../components/Header"
-import { Link } from "react-router-dom"
-import { Button, Spinner } from "react-bootstrap"
+import LoadingSpinner from "../components/LoadingSpinner";
 import apiURL from "../api";
 
 
@@ -28,19 +26,37 @@ function WatchHistory() {
         fetchWatchHistory();
     }, []);
 
+    function contentListItem(content) {
+        return (<li key={content.id}>
+            <Link to={`/content?content_id=${content.id}`}>
+                <img src={content.image_url} alt={content.title} />
+                <h2>{content.title}</h2>
+                <p>{content.description}</p>
+            </Link>
+        </li>)
+    }
+
+    function watchHistoryList() {
+        return (<div className="watch-history-list">
+            <ul>
+                {watchHistory.map((content) => (
+                    contentListItem(content)
+                ))}
+            </ul>
+        </div>)
+    }
+
     return (<div className="watch-history">
         <Header />
         {!watchHistory ? (
-            <div className="loading-spinner">
-                <Spinner animation="border" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </Spinner>
-            </div>
+            <LoadingSpinner />
         ) : (
             <div className="watch-history-body">
+                <h1>Watch History</h1>
+                {watchHistoryList()}
             </div>
         )}
-    </div>);
+    </div >);
 }
 
 export default WatchHistory;

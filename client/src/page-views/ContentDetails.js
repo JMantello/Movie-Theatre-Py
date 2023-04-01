@@ -2,7 +2,6 @@ import { useState, useEffect } from "react"
 import useLocation from "react-router-dom"
 import Header from "../components/Header"
 import LoadingSpinner from "../components/LoadingSpinner"
-import Link from "react-router-dom"
 import Button from "react-bootstrap"
 import apiURL from "../api";
 
