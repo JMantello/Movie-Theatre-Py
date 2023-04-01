@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react"
 import Header from "../components/Header"
-import { LoadingSpinner } from "../components/LoadingSpinner"
+import LoadingSpinner from "../components/LoadingSpinner"
 import { Link } from "react-router-dom"
-import { Button } from "react-bootstrap"
+import Button from "react-bootstrap/Button"
 import apiURL from "../api";
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
