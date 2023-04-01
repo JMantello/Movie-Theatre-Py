@@ -8,6 +8,7 @@ function Header() {
                 <NavLink to="/feed" className="nav-link">Home</NavLink>
                 <NavLink to="/feed" className="nav-link">TV Shows</NavLink>
                 <NavLink to="/feed" className="nav-link">Movies</NavLink>
+                <NavLink to="/watchHistory" className="nav-link">Watch History</NavLink>
                 <NavLink to="/feed" className="nav-link">Sign Out</NavLink>
             </div>
 

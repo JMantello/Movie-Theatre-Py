@@ -4,6 +4,7 @@ import { useState } from "react"
 import Login from './page-views/Login'
 import Feed from './page-views/Feed'
 import ContentDetails from './page-views/ContentDetails'
+import WatchHistory from './page-views/WatchedHistory';
 
 function App() {
   const [session, setSession] = useState({})
@@ -15,6 +16,7 @@ function App() {
         <Route path="/login" element={<Login setSession={setSession} />} />
         <Route path="/feed" element={<Feed session={session} />} />
         <Route path="/content" element={<ContentDetails />} />
+        <Route path="/watchHistory" element={<WatchHistory />} />
         <Route path="/*" element={<h1>Not Found</h1>} />
       </Routes>
     </div>
