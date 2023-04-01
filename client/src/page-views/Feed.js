@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import Header from "../components/Header"
 import { Link } from "react-router-dom"
-import { Spinner } from "react-bootstrap"
+import { Spinner, Button } from "react-bootstrap"
 import apiURL from "../api";
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
@@ -110,6 +110,16 @@ function Feed() {
             </div>
         ) : (
             <div className="feed-body">
+                <div className="content-details-body">
+                    <div className="content-details-body-left">
+                        <img src={feed[0].image_url} alt={feed[0].title} />
+                    </div>
+                    <div className="content-details-body-right">
+                        <h1>{feed[0].title}</h1>
+                        <p>{feed[0].description}</p>
+                        <Button variant="primary">Watch Now</Button>
+                    </div>
+                </div>
                 {genres.map(g => (genreCarousel(g)))}
             </div>
         )}
