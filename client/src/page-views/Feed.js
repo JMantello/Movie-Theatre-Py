@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react"
 import Header from "../components/Header"
+import { LoadingSpinner } from "../components/LoadingSpinner"
 import { Link } from "react-router-dom"
-import { Spinner, Button } from "react-bootstrap"
+import { Button } from "react-bootstrap"
 import apiURL from "../api";
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
@@ -84,7 +85,7 @@ function Feed() {
         </div>
     }
 
-    function genreCarousel(genre) {
+    function categoryCarousel(genre) {
         const content = feed.filter(c => c.genre === genre);
 
         return (
@@ -103,11 +104,7 @@ function Feed() {
     return (<div className="feed">
         <Header />
         {feed.length === 0 || genres.length === 0 ? (
-            <div className="loading-spinner">
-                <Spinner animation="border" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </Spinner>
-            </div>
+            <LoadingSpinner />
         ) : (
             <div className="feed-body">
                 <div className="featured-content-body">
@@ -120,7 +117,7 @@ function Feed() {
                         <Button variant="primary">Watch Now</Button>
                     </div>
                 </div>
-                {genres.map(g => (genreCarousel(g)))}
+                {genres.map(g => (categoryCarousel(g)))}
             </div>
         )}
     </div>

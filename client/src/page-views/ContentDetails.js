@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react"
-import { useLocation } from "react-router-dom"
+import useLocation from "react-router-dom"
 import Header from "../components/Header"
-import { Link } from "react-router-dom"
-import { Button, Spinner } from "react-bootstrap"
+import LoadingSpinner from "../components/LoadingSpinner"
+import Link from "react-router-dom"
+import Button from "react-bootstrap"
 import apiURL from "../api";
 
 
@@ -42,11 +43,7 @@ function ContentDetails() {
     return (<div className="content-details">
         <Header />
         {!content ? (
-            <div className="loading-spinner">
-                <Spinner animation="border" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </Spinner>
-            </div>
+            <LoadingSpinner />
         ) : (
             <div className="content-details-body">
                 <div className="content-details-body-left">
