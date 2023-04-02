@@ -14,7 +14,6 @@ function WatchHistory(props) {
             const response = await fetch(`${apiURL}/watchHistory?token=${session.token}`);
             const responseData = await response.json();
             setWatchHistory(responseData);
-            console.log(watchHistory);
         } catch (err) {
             console.log("Error with fetching watch history", err);
         }
