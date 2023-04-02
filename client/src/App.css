@@ -101,6 +101,11 @@ body {
   font-weight: 600;
 }
 
+/* Doesn't work for some reason.  */
+.nav-link:hover {
+  color: rgb(16, 132, 209);
+}
+
 @media screen and (max-width: 768px) {
   .logo {
     margin: auto;
