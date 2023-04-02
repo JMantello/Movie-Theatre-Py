@@ -31,7 +31,9 @@ function WatchHistory() {
     function contentListItem(content) {
         return (<li key={content.id}>
             <Link to={`/content?content_id=${content.id}`} className="watch-history-list-item">
-                <img src={content.image_url} alt={content.title} />
+                <div className="content-item-left">
+                    <img src={content.image_url} alt={content.title} />
+                </div>
                 <div className="content-item-right">
                     <h2>{content.title}</h2>
                     <p>{content.description}</p>

@@ -250,6 +250,21 @@ def watch():
     return jsonify(UserSchema().dump(user)), 200
 
 
+@app.route("/watchHistory", methods=["GET"])
+def watchHistory():
+    req = request.args
+    user = __getUserBySessionToken(req["token"])
+    if not user:
+        return jsonify(f"No user found in Session table", 404)
+
+    cs = ContentSchema()
+    res = []
+    for c in user.watchHistory:
+        res.append(cs.dump(c))
+
+    return jsonify(res), 200
+
+
 @app.route("/user", methods=["GET", "POST", "PUT", "DELETE"])
 def user():
     if request.method == "POST":

@@ -11,7 +11,6 @@ function Header() {
                 <NavLink to="/watchHistory" className="nav-link">Watch History</NavLink>
                 <NavLink to="/feed" className="nav-link">Sign Out</NavLink>
             </div>
-
         </header>
     )
 }
