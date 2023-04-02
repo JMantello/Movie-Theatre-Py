@@ -7,11 +7,8 @@ import apiURL from "../api";
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 
-function Feed() {
-    const [session, setSession] = useState({
-        user_id: 1,
-        token: "bc5e7618-c791-4552-8d07-79f100dda864"
-    })
+function Feed(props) {
+    const { session } = props
     const [feed, setFeed] = useState([])
     const [genres, setGenres] = useState([])
 
@@ -53,7 +50,6 @@ function Feed() {
 
     const responsive = {
         superLargeDesktop: {
-            // the naming can be any, depends on you.
             breakpoint: { max: 4000, min: 2000 },
             items: 6
         },
@@ -81,11 +77,7 @@ function Feed() {
     function thumbnail(content) {
         return <div className="content-thumbnail">
             <Link to={{
-                pathname: "/content",
-                state: {
-                    session: session,
-                    contentId: content.id
-                }
+                pathname: `/content/${content.id}`,
             }}>
                 <img src={content.image_url} alt={content.title} />
             </Link>
@@ -142,8 +134,6 @@ function Feed() {
                 <Carousel
                     responsive={featuredResponsive}
                     infinite={true}
-                    swipeable={true}
-                    draggable={true}
                     autoPlay={true}
                     autoPlaySpeed={8000}
                 >

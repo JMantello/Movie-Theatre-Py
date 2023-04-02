@@ -5,13 +5,9 @@ import { Link } from "react-router-dom"
 import apiURL from "../api";
 
 
-function WatchHistory() {
-    const [session, setSession] = useState({
-        user_id: 1,
-        token: "bc5e7618-c791-4552-8d07-79f100dda864",
-    })
+function WatchHistory(props) {
+    const { session } = props;
     const [watchHistory, setWatchHistory] = useState([]);
-    // console.log(location);
 
     async function fetchWatchHistory() {
         try {
@@ -30,7 +26,7 @@ function WatchHistory() {
 
     function contentListItem(content) {
         return (<li key={content.id}>
-            <Link to={`/content?content_id=${content.id}`} className="watch-history-list-item">
+            <Link to={`/content/${content.id}`} className="watch-history-list-item">
                 <div className="content-item-left">
                     <img src={content.image_url} alt={content.title} />
                 </div>

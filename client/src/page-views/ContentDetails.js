@@ -1,23 +1,19 @@
 import { useState, useEffect } from "react"
-import useLocation from "react-router-dom"
+import { useParams } from "react-router-dom"
 import Header from "../components/Header"
 import LoadingSpinner from "../components/LoadingSpinner"
 import Button from "react-bootstrap/Button"
 import apiURL from "../api";
 
 
-function ContentDetails() {
-    const [session, setSession] = useState({
-        user_id: 1,
-        token: "bc5e7618-c791-4552-8d07-79f100dda864",
-        content_id: 1
-    })
+function ContentDetails(props) {
+    const { id } = useParams();
+    const { session } = props;
     const [content, setContent] = useState({});
-    // console.log(location);
 
     async function fetchContent() {
         try {
-            const response = await fetch(`${apiURL}/content?token=${session.token}&content_id=${session.content_id}`);
+            const response = await fetch(`${apiURL}/content?token=${session.token}&content_id=${id}`);
             const responseData = await response.json();
             setContent(responseData);
         } catch (err) {
@@ -27,7 +23,7 @@ function ContentDetails() {
 
     async function watch() {
         try {
-            const response = await fetch(`${apiURL}/watch?token=${session.token}&content_id=${session.content_id}`);
+            const response = await fetch(`${apiURL}/watch?token=${session.token}&content_id=${id}`);
             const responseData = await response.json();
             alert(`You are watching ${content.title}`)
         } catch (err) {

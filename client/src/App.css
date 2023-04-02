@@ -119,6 +119,10 @@ body {
     justify-content: center;
     gap: 10px;
   }
+
+  .nav-link {
+    margin: 0;
+  }
 }
 
 @media screen and (max-width: 528px) {
@@ -195,6 +199,7 @@ body {
   .featured-content-body {
     display: flex;
     flex-direction: column;
+    gap: 10px;
   }
 }
 
@@ -235,7 +240,6 @@ body {
 
 .watch-history-list-container {
   height: 100%;
-  display: flex;
   padding: 5% 1%;
   gap: 20px;
 }
@@ -247,7 +251,9 @@ body {
 }
 
 .watch-history-list-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  padding: 15px 0;
   text-decoration: none;
   color: rgba(255, 255, 255, 0.9);
 }

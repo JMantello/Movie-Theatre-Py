@@ -38,7 +38,7 @@ function Login(props) {
             // Get a session token from response
             const session = await response.json()
             setSession(session)
-            navigate("/feed", { session: session, replace: true })
+            navigate("/feed", { replace: true })
 
         } catch (err) {
             console.log("Error with posting login request", err)
