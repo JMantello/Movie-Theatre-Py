@@ -71,6 +71,13 @@ function Feed() {
         }
     };
 
+    const featuredResponsive = {
+        screen: {
+            breakpoint: { max: 6000, min: 0 },
+            items: 1
+        }
+    };
+
     function thumbnail(content) {
         return <div className="content-thumbnail">
             <Link to={{
@@ -101,22 +108,47 @@ function Feed() {
             </section>);
     }
 
+    function featuredContent() {
+        let content = []
+
+        for (let i = 0; i < 5; i++) {
+            let item = (
+                <div className="featured-content-item">
+                    <div className="featured-content-body">
+                        <div className="featured-content-body-left">
+                            <img src={feed[i].image_url} alt={feed[i].title} />
+                        </div>
+                        <div className="featured-content-body-right">
+                            <h1>{feed[i].title}</h1>
+                            <p>{feed[i].description}</p>
+                            <Button variant="primary">Watch Now</Button>
+                        </div>
+                    </div>
+                </div>
+            )
+            content.push(item)
+        }
+
+        return content;
+    }
+
     return (<div className="feed">
         <Header />
         {feed.length === 0 || genres.length === 0 ? (
             <LoadingSpinner />
         ) : (
             <div className="feed-body">
-                <div className="featured-content-body">
-                    <div className="featured-content-body-left">
-                        <img src={feed[0].image_url} alt={feed[0].title} />
-                    </div>
-                    <div className="featured-content-body-right">
-                        <h1>{feed[0].title}</h1>
-                        <p>{feed[0].description}</p>
-                        <Button variant="primary">Watch Now</Button>
-                    </div>
-                </div>
+                <h2 className="mt-5 p-1">Featured Content</h2>
+                <Carousel
+                    responsive={featuredResponsive}
+                    infinite={true}
+                    swipeable={true}
+                    draggable={true}
+                    autoPlay={true}
+                    autoPlaySpeed={8000}
+                >
+                    {featuredContent()}
+                </Carousel>
                 {genres.map(g => (categoryCarousel(g)))}
             </div>
         )}

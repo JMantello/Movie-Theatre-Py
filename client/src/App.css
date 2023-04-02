@@ -52,7 +52,8 @@ body {
   flex: 2;
   display: flex;
   text-align: left;
-  max-height: 80%;
+  height: 100%;
+  margin-bottom: 5%;
 }
 
 .login-form-wrapper {
@@ -170,13 +171,15 @@ body {
 
 .featured-content-body {
   height: 100%;
-  display: flex;
-  flex-direction: row;
-  padding: 5% 1%;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  padding: 3% 1%;
+  max-width: 1800px;
+  margin: auto;
 }
 
-
 .featured-content-body-left img {
+  aspect-ratio: 16/9;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -184,13 +187,14 @@ body {
   max-width: 1250px;
 }
 
-@media screen and (max-width: 768px) {
-  .featured-content-body {
-    flex-direction: column;
-  }
+.featured-content-body-right {
+  padding: 0 5%;
+}
 
-  .featured-content-body-right {
-    padding: 5%;
+@media screen and (max-width: 968px) {
+  .featured-content-body {
+    display: flex;
+    flex-direction: column;
   }
 }
 
