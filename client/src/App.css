@@ -78,6 +78,9 @@ body {
 .header {
   background: linear-gradient(180deg, rgba(0, 0, 0, .5) 0, transparent);
   border-bottom: transparent;
+}
+
+nav {
   display: flex;
   text-align: left;
   align-items: center;
@@ -101,7 +104,7 @@ body {
   font-weight: 600;
 }
 
-/* Doesn't work for some reason.  */
+/* Doesn't work for some reason. Color property not affecting text color  */
 .nav-link:hover {
   color: rgb(16, 132, 209);
 }

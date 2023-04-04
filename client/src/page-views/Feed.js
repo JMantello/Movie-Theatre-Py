@@ -113,7 +113,9 @@ function Feed(props) {
                         <div className="featured-content-body-right">
                             <h1>{feed[i].title}</h1>
                             <p>{feed[i].description}</p>
-                            <Button variant="primary">Watch Now</Button>
+                            <Link to={`/content/${feed[i].id}`}>
+                                <Button variant="primary">Watch Now</Button>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -140,6 +142,7 @@ function Feed(props) {
                     {featuredContent()}
                 </Carousel>
                 {genres.map(g => (categoryCarousel(g)))}
+                <br />
             </div>
         )}
     </div>

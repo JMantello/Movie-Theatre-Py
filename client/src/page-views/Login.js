@@ -49,7 +49,7 @@ function Login(props) {
         <div className="login-background-image"></div>
         <div className="login">
             <header className="login-header">
-                <Link to="/" className="logo">Movies</Link>
+                <Link to="/login" className="logo">Movies</Link>
             </header>
             <main className="login-body">
                 <div className="login-form-wrapper">
